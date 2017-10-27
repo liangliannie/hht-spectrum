@@ -3,6 +3,10 @@ def compute_hht(imfs, time):
     # input all the imfs and time
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.tri as mtri
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pyhht
+    import pylab as pl
     # time /= 365
     n_imfs = imfs.shape[0]
     all_frequency = []
