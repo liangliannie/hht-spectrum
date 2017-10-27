@@ -1,5 +1,6 @@
 
 def compute_hht(imfs, time):
+    # input all the imfs and time
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.tri as mtri
     # time /= 365
