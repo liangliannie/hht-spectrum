@@ -1,10 +1,10 @@
-
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import numpy as np
 import pyhht
 import math
 from matplotlib import colors, ticker, cm
+from PyEMD import EEMD
 
 def plot_imfs(signal, imfs, time_samples = None, fig=None):
     ''' Author jaidevd https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py '''
@@ -119,85 +119,58 @@ def FAhilbert(imfs, dt):
         a.append(inst_amp)
     return np.asarray(f).T, np.asarray(a).T
 
+def hht(data, time, freqsol = 33, timesol = 50):
+    #   freqsol give frequency - axis resolution for hilbert - spectrum
+    #   timesol give time - axis resolution for hilbert - spectrum
+    t0=time[0]
+    t1=time[-1]
+    dt = (t1-t0)/(len(time)-1)
+    
+    decomposer2 = pyhht.emd.EmpiricalModeDecomposition(data)
+    eemd = EEMD()
+    imfs = eemd.eemd(data)
+    freq, amp = FAhilbert(imfs, dt)
+    
+    fw0 = np.min(np.min(freq)) # maximum frequency
+    fw1 = np.max(np.max(freq)) # maximum frequency
 
-# f = Dataset('/Users/lli51/Documents/ornl_project/171002_parmmods_monthly_obs.nc')
-f = Dataset('/Users/lli51/Documents/ornl_project/171002_parmmods_daily_obs.nc')
+    if fw0 <= 0:
+        fw0 = np.min(np.min(freq[freq > 0])) # only consider positive frequency
 
-fsh = f.variables['FSH']
-time = f.variables['time']
-one_site = np.ma.masked_invalid(fsh[0,:])
-time = time[~one_site.mask]
+    fw = fw1-fw0
+    tw = t1-t0
+    
+    bins = np.linspace(0, 12, freqsol) #np.logspace(0, 10, freqsol, base=2.0)
+    p = np.digitize(freq, 2**bins)
+    t = np.ceil((timesol-1)*(time-t0)/tw)
+    t = t.astype(int)
 
-data = one_site.compressed()
-# print(data)
-decomposer2 = pyhht.emd.EmpiricalModeDecomposition(data)
-# imfs = decomposer2.decompose()
-from PyEMD import EEMD
-eemd = EEMD()
-imfs = eemd.eemd(data)
-# imfs = data2
-# data2 = np.fromfile('data.text')
+    hilbert_spectrum = np.zeros([timesol, freqsol])
+    for i in range(len(time)):
+        for j in range(imfs.shape[0]-1):
+            if p[i, j] >= 0 and p[i, j]<freqsol:
+                hilbert_spectrum[t[i], p[i, j]] += amp[i, j]
 
-# print(imfs)
-fig1 = plt.figure(figsize=(5, 5))
+    hilbert_spectrum = abs(hilbert_spectrum)
+    fig1 = plt.figure(figsize=(5, 5))
+    plot_imfs(data, imfs, time_samples=time, fig=fig1)
 
-plot_imfs(data, imfs, time_samples=time, fig=fig1)
+    fig2 = plt.figure(figsize=(5, 5))
+    plot_frequency(data, freq.T, time_samples=time, fig=fig2)
+    
+    fig0 = plt.figure(figsize=(5, 5))
+    ax = plt.gca()
+    c = ax.contourf(np.linspace(t0,t1,timesol), bins, hilbert_spectrum.T) #, colors=('whites','lategray','navy','darkgreen','gold','red')
+    ax.invert_yaxis()
+    ax.set_yticks(np.linspace(1, 11, 11))
+    Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
+    ax.set_yticklabels(Yticks)
+    ax.set_xlabel('Time', fontsize=8)
+    ax.set_ylabel('Period', fontsize=8)
+    position = fig0.add_axes([0.2, 0.05, 0.6, 0.01])
+    cbar = plt.colorbar(c, cax=position, orientation='horizontal')
+    cbar.set_label('Power')
+    plt.show()
+    
 
-#   give frequency - axis resolution for hilbert - spectrum
-freqsol = 33
-#   give time - axis resolution for hilbert - spectrum
-timesol = 50
-
-t0=time[0]
-t1=time[-1]
-
-dt = (t1-t0)/(len(time)-1)
-freq, amp = FAhilbert(imfs, dt)
-# freq, amp = ff, aa
-print(freq.shape, imfs.shape)
-fig2 = plt.figure(figsize=(5, 5))
-plot_frequency(data, freq.T, time_samples=time, fig=fig2)
-
-fw0 = np.min(np.min(freq))
-fw1 = np.max(np.max(freq))
-
-if fw0 <= 0:
-    fw0 = np.min(np.min(freq[freq > 0]))
-
-fw = fw1-fw0
-tw = t1-t0
-bins = np.linspace(0, 12, freqsol) #np.logspace(0, 10, freqsol, base=2.0)
-p = np.digitize(freq, 2**bins)
-# print(p)
-t = np.ceil((timesol-1)*(time-t0)/tw)
-t = t.astype(int)
-
-hilbert_spectrum = np.zeros([timesol, freqsol])
-for i in range(len(time)):
-    for j in range(imfs.shape[0]-1):
-        if p[i, j] >= 0 and p[i, j]<freqsol:
-            hilbert_spectrum[t[i], p[i, j]] += amp[i, j]
-# for i in range(timesol):
-#     for j in range(freqsol):
-#         if hilbert_spectrum[i, j]== 0.:
-#             hilbert_spectrum[i, j] = -999.
-#         else:
-#             hilbert_spectrum[i, j] = math.log(hilbert_spectrum[i, j], 2)
-# print(hilbert_spectrum[hilbert_spectrum>0].shape)
-hilbert_spectrum = abs(hilbert_spectrum)
-fig0 = plt.figure(figsize=(5, 5))
-# ax = plt.subplot(1, 1, 1)
-ax = plt.gca()
-# c = ax.contourf(np.linspace(t0,t1,timesol),np.linspace(fw0,fw1,freqsol), hilbert_spectrum.T) #, colors=('whites','lategray','navy','darkgreen','gold','red')
-c = ax.contourf(np.linspace(t0,t1,timesol), bins, hilbert_spectrum.T) #, colors=('whites','lategray','navy','darkgreen','gold','red')
-ax.invert_yaxis()
-ax.set_yticks(np.linspace(1, 11, 11))
-Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
-ax.set_yticklabels(Yticks)
-ax.set_xlabel('Time', fontsize=8)
-ax.set_ylabel('Period', fontsize=8)
-position = fig0.add_axes([0.2, 0.05, 0.6, 0.01])
-cbar = plt.colorbar(c, cax=position, orientation='horizontal')
-cbar.set_label('Power')
-
-plt.show()
+    
