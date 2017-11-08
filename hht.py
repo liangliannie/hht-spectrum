@@ -1,7 +1,6 @@
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import numpy as np
-import pyhht
 import math
 from matplotlib import colors, ticker, cm
 from PyEMD import EEMD
@@ -126,7 +125,6 @@ def hht(data, time, freqsol = 33, timesol = 50):
     t1=time[-1]
     dt = (t1-t0)/(len(time)-1)
     
-    decomposer2 = pyhht.emd.EmpiricalModeDecomposition(data)
     eemd = EEMD()
     imfs = eemd.eemd(data)
     freq, amp = FAhilbert(imfs, dt)
