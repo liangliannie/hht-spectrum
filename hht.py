@@ -2,7 +2,6 @@ from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-from matplotlib import colors, ticker, cm
 from PyEMD import EEMD
 
 def plot_imfs(signal, imfs, time_samples = None, fig=None):
@@ -129,13 +128,13 @@ def hht(data, time, freqsol = 33, timesol = 50):
     imfs = eemd.eemd(data)
     freq, amp = FAhilbert(imfs, dt)
     
-    fw0 = np.min(np.min(freq)) # maximum frequency
-    fw1 = np.max(np.max(freq)) # maximum frequency
+#     fw0 = np.min(np.min(freq)) # maximum frequency
+#     fw1 = np.max(np.max(freq)) # maximum frequency
 
-    if fw0 <= 0:
-        fw0 = np.min(np.min(freq[freq > 0])) # only consider positive frequency
+#     if fw0 <= 0:
+#         fw0 = np.min(np.min(freq[freq > 0])) # only consider positive frequency
 
-    fw = fw1-fw0
+#     fw = fw1-fw0
     tw = t1-t0
     
     bins = np.linspace(0, 12, freqsol) #np.logspace(0, 10, freqsol, base=2.0)
