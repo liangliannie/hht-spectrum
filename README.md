@@ -22,7 +22,7 @@ pyEMD
 
 Details:
 --------------------------------------------------------------------------------------------
-   hht
+   https://liangliannie.github.io/hht-spectrum/
 
 The following contents contain one example of the hht spectrum.
 ::
