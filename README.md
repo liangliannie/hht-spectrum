@@ -25,7 +25,8 @@ Details:
    https://liangliannie.github.io/hht-spectrum/
 
 The following contents contain one example of the hht spectrum.
-::
+
+```python
      from netCDF4 import Dataset
      from hht import hht
      import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ The following contents contain one example of the hht spectrum.
 
      data = one_site.compressed()
      hht(data, time)
-
+```
 
 <img src="/source/Figure_11.png" width="500">
 
