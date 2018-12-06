@@ -25,9 +25,7 @@ Details:
    hht
 
 The following contents contain one example of the hht spectrum.
-
-.. sourcecode:: ipython
-
+::
      from netCDF4 import Dataset
      from hht import hht
      import matplotlib.pyplot as plt
