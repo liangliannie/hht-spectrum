@@ -1,0 +1,338 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hht &#8212; HilbertHuangSpectrum 2.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hht</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">PyEMD</span> <span class="k">import</span> <span class="n">EEMD</span>
+
+
+<div class="viewcode-block" id="plot_imfs"><a class="viewcode-back" href="../hht.html#hht.plot_imfs">[docs]</a><span class="k">def</span> <span class="nf">plot_imfs</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">imfs</span><span class="p">,</span> <span class="n">time_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    plot_imfs function for the Hilbert Huang Transform is adopted from pyhht.</span>
+<span class="sd">    Author: jaidevd https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py</span>
+<span class="sd">    Plot the signal, IMFs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    signal : array-like, shape (n_samples,)</span>
+<span class="sd">       The input signal.</span>
+<span class="sd">    imfs : array-like, shape (n_imfs, n_samples)</span>
+<span class="sd">       Matrix of IMFs as generated with the `EMD.decompose` method.</span>
+<span class="sd">    time_samples : array-like, shape (n_samples), optional</span>
+<span class="sd">       Time instants of the signal samples.</span>
+<span class="sd">       (defaults to `np.arange(1, len(signal))`)</span>
+<span class="sd">    -------</span>
+<span class="sd">    `matplotlib.figure.Figure`</span>
+<span class="sd">       The figure (new or existing) in which the decomposition is plotted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">n_imfs</span> <span class="o">=</span> <span class="n">imfs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="n">time_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time_samples</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">signal</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">signal</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Signal&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Empirical Mode Decomposition&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the IMFs</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># print(i + 2)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">imfs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="c1"># ax.axis([time_samples[0], time_samples[-1], -axis_extent, axis_extent])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;imf&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Plot the residue</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">imfs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;res.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="plot_frequency"><a class="viewcode-back" href="../hht.html#hht.plot_frequency">[docs]</a><span class="k">def</span> <span class="nf">plot_frequency</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">imfs</span><span class="p">,</span> <span class="n">time_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    plot_imfs function for the Hilbert Huang Transform is adopted from pyhht.</span>
+<span class="sd">    Author: jaidevd https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py</span>
+<span class="sd">    Plot the signal, IMFs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    signal : array-like, shape (n_samples,)</span>
+<span class="sd">       The input signal.</span>
+<span class="sd">    imfs : array-like, shape (n_imfs, n_samples)</span>
+<span class="sd">       Matrix of IMFs as generated with the `EMD.decompose` method.</span>
+<span class="sd">    time_samples : array-like, shape (n_samples), optional</span>
+<span class="sd">       Time instants of the signal samples.</span>
+<span class="sd">       (defaults to `np.arange(1, len(signal))`)</span>
+<span class="sd">    -------</span>
+<span class="sd">    `matplotlib.figure.Figure`</span>
+<span class="sd">       The figure (new or existing) in which the instance frequency is plotted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">n_imfs</span> <span class="o">=</span> <span class="n">imfs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># print(np.abs(imfs[:-1, :]))</span>
+    <span class="c1"># axis_extent = max(np.max(np.abs(imfs[:-1, :]), axis=0))</span>
+    <span class="c1"># Plot original signal</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="n">time_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time_samples</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">signal</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">signal</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Signal&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Instantaneous frequency of IMFs&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the IMFs</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># print(i + 2)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">imfs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="c1"># ax.axis([time_samples[0], time_samples[-1], -axis_extent, axis_extent])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tick_right</span><span class="p">()</span>
+        <span class="c1"># ax.yaxis.set_ticks(np.logspace(1, 5, 5))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">imfs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;imf&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Plot the residue</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_imfs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_samples</span><span class="p">,</span> <span class="n">imfs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;res.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="hilb"><a class="viewcode-back" href="../hht.html#hht.hilb">[docs]</a><span class="k">def</span> <span class="nf">hilb</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unwrap</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs Hilbert transformation on signal s.</span>
+<span class="sd">    Returns amplitude and phase of signal.</span>
+<span class="sd">    Depending on unwrap value phase can be either</span>
+<span class="sd">    in range [-pi, pi) (unwrap=False) or</span>
+<span class="sd">    continuous (unwrap=True).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">hilbert</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">hilbert</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">H</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unwrap</span><span class="p">:</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">amp</span><span class="p">,</span> <span class="n">phase</span></div>
+
+
+<div class="viewcode-block" id="FAhilbert"><a class="viewcode-back" href="../hht.html#hht.FAhilbert">[docs]</a><span class="k">def</span> <span class="nf">FAhilbert</span><span class="p">(</span><span class="n">imfs</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs Hilbert transformation on imfs.</span>
+<span class="sd">    Returns frequency and amplitude of signal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_imfs</span> <span class="o">=</span> <span class="n">imfs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_imfs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># upper, lower = pyhht.utils.get_envelops(imfs[i, :])</span>
+        <span class="n">inst_imf</span> <span class="o">=</span> <span class="n">imfs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># /upper</span>
+        <span class="n">inst_amp</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">hilb</span><span class="p">(</span><span class="n">inst_imf</span><span class="p">,</span> <span class="n">unwrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">inst_freq</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>  <span class="c1">#</span>
+
+        <span class="n">inst_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">inst_freq</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">inst_freq</span><span class="p">),</span> <span class="n">inst_freq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">inst_amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">inst_amp</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">inst_amp</span><span class="p">),</span> <span class="n">inst_amp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst_freq</span><span class="p">)</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst_amp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="hht"><a class="viewcode-back" href="../hht.html#hht.hht">[docs]</a><span class="k">def</span> <span class="nf">hht</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">freqsol</span><span class="o">=</span><span class="mi">33</span><span class="p">,</span> <span class="n">timesol</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    hht function for the Hilbert Huang Transform spectrum</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array-like, shape (n_samples,)</span>
+<span class="sd">       The input signal.</span>
+<span class="sd">    time : array-like, shape (n_samples), optional</span>
+<span class="sd">       Time instants of the signal samples.</span>
+<span class="sd">       (defaults to `np.arange(1, len(signal))`)</span>
+<span class="sd">    -------</span>
+<span class="sd">    `matplotlib.figure.Figure`</span>
+<span class="sd">       The figure (new or existing) in which the hht spectrum is plotted.</span>
+
+<span class="sd">    example:</span>
+<span class="sd">    --------------------</span>
+
+<span class="sd">    .. sourcecode:: ipython</span>
+<span class="sd">        f = Dataset(&#39;./source/obs.nc&#39;)</span>
+<span class="sd">        # read one example data</span>
+<span class="sd">        fsh = f.variables[&#39;FSH&#39;]</span>
+<span class="sd">        time = f.variables[&#39;time&#39;]</span>
+<span class="sd">        one_site = np.ma.masked_invalid(fsh[0,:])</span>
+<span class="sd">        time = time[~one_site.mask]</span>
+<span class="sd">        data = one_site.compressed()</span>
+<span class="sd">        hht(data, time)</span>
+
+
+<span class="sd">    ----------------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="c1">#   freqsol give frequency - axis resolution for hilbert - spectrum</span>
+    <span class="c1">#   timesol give time - axis resolution for hilbert - spectrum</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">eemd</span> <span class="o">=</span> <span class="n">EEMD</span><span class="p">()</span>
+    <span class="n">imfs</span> <span class="o">=</span> <span class="n">eemd</span><span class="o">.</span><span class="n">eemd</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">freq</span><span class="p">,</span> <span class="n">amp</span> <span class="o">=</span> <span class="n">FAhilbert</span><span class="p">(</span><span class="n">imfs</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+
+    <span class="c1">#     fw0 = np.min(np.min(freq)) # maximum frequency</span>
+    <span class="c1">#     fw1 = np.max(np.max(freq)) # maximum frequency</span>
+
+    <span class="c1">#     if fw0 &lt;= 0:</span>
+    <span class="c1">#         fw0 = np.min(np.min(freq[freq &gt; 0])) # only consider positive frequency</span>
+
+    <span class="c1">#     fw = fw1-fw0</span>
+    <span class="n">tw</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">freqsol</span><span class="p">)</span>  <span class="c1"># np.logspace(0, 10, freqsol, base=2.0)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">bins</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">timesol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">tw</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">hilbert_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">timesol</span><span class="p">,</span> <span class="n">freqsol</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">imfs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">freqsol</span><span class="p">:</span>
+                <span class="n">hilbert_spectrum</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">amp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+
+    <span class="n">hilbert_spectrum</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hilbert_spectrum</span><span class="p">)</span>
+    <span class="n">fig1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">plot_imfs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">imfs</span><span class="p">,</span> <span class="n">time_samples</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig1</span><span class="p">)</span>
+
+    <span class="n">fig2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">plot_frequency</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">freq</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">time_samples</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig2</span><span class="p">)</span>
+
+    <span class="n">fig0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">timesol</span><span class="p">),</span> <span class="n">bins</span><span class="p">,</span>
+                    <span class="n">hilbert_spectrum</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>  <span class="c1"># , colors=(&#39;whites&#39;,&#39;lategray&#39;,&#39;navy&#39;,&#39;darkgreen&#39;,&#39;gold&#39;,&#39;red&#39;)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">))</span>
+    <span class="n">Yticks</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)]</span>  <span class="c1"># make 2^periods</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">Yticks</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Period&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">fig3</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">])</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">position</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Power&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">HilbertHuangSpectrum</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../hht.html">hht.py for Hilbert Huang Transform</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Liang Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

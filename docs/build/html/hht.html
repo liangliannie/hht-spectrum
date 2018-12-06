@@ -1,0 +1,182 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hht.py for Hilbert Huang Transform &#8212; HilbertHuangSpectrum 2.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to PyHHT’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-hht">
+<span id="hht-py-for-hilbert-huang-transform"></span><h1>hht.py for Hilbert Huang Transform<a class="headerlink" href="#module-hht" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="hht.FAhilbert">
+<code class="descclassname">hht.</code><code class="descname">FAhilbert</code><span class="sig-paren">(</span><em>imfs</em>, <em>dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hht.html#FAhilbert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hht.FAhilbert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Hilbert transformation on imfs.
+Returns frequency and amplitude of signal.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hht.hht">
+<code class="descclassname">hht.</code><code class="descname">hht</code><span class="sig-paren">(</span><em>data</em>, <em>time</em>, <em>freqsol=33</em>, <em>timesol=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hht.html#hht"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hht.hht" title="Permalink to this definition">¶</a></dt>
+<dd><p>hht function for the Hilbert Huang Transform spectrum</p>
+<dl class="docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples,)</span></dt>
+<dd>The input signal.</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples), optional</span></dt>
+<dd>Time instants of the signal samples.
+(defaults to <cite>np.arange(1, len(signal))</cite>)</dd>
+</dl>
+<dl class="docutils">
+<dt><cite>matplotlib.figure.Figure</cite></dt>
+<dd>The figure (new or existing) in which the hht spectrum is plotted.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hht.hilb">
+<code class="descclassname">hht.</code><code class="descname">hilb</code><span class="sig-paren">(</span><em>s</em>, <em>unwrap=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hht.html#hilb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hht.hilb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Hilbert transformation on signal s.
+Returns amplitude and phase of signal.
+Depending on unwrap value phase can be either
+in range [-pi, pi) (unwrap=False) or
+continuous (unwrap=True).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hht.plot_frequency">
+<code class="descclassname">hht.</code><code class="descname">plot_frequency</code><span class="sig-paren">(</span><em>signal</em>, <em>imfs</em>, <em>time_samples=None</em>, <em>fig=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hht.html#plot_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hht.plot_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot_imfs function for the Hilbert Huang Transform is adopted from pyhht.
+Author: jaidevd <a class="reference external" href="https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py">https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py</a>
+Plot the signal, IMFs.</p>
+<dl class="docutils">
+<dt>signal <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples,)</span></dt>
+<dd>The input signal.</dd>
+<dt>imfs <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_imfs, n_samples)</span></dt>
+<dd>Matrix of IMFs as generated with the <cite>EMD.decompose</cite> method.</dd>
+<dt>time_samples <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples), optional</span></dt>
+<dd>Time instants of the signal samples.
+(defaults to <cite>np.arange(1, len(signal))</cite>)</dd>
+</dl>
+<dl class="docutils">
+<dt><cite>matplotlib.figure.Figure</cite></dt>
+<dd>The figure (new or existing) in which the instance frequency is plotted.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hht.plot_imfs">
+<code class="descclassname">hht.</code><code class="descname">plot_imfs</code><span class="sig-paren">(</span><em>signal</em>, <em>imfs</em>, <em>time_samples=None</em>, <em>fig=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hht.html#plot_imfs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hht.plot_imfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot_imfs function for the Hilbert Huang Transform is adopted from pyhht.
+Author: jaidevd <a class="reference external" href="https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py">https://github.com/jaidevd/pyhht/blob/dev/pyhht/visualization.py</a>
+Plot the signal, IMFs.</p>
+<dl class="docutils">
+<dt>signal <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples,)</span></dt>
+<dd>The input signal.</dd>
+<dt>imfs <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_imfs, n_samples)</span></dt>
+<dd>Matrix of IMFs as generated with the <cite>EMD.decompose</cite> method.</dd>
+<dt>time_samples <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples), optional</span></dt>
+<dd>Time instants of the signal samples.
+(defaults to <cite>np.arange(1, len(signal))</cite>)</dd>
+</dl>
+<dl class="docutils">
+<dt><cite>matplotlib.figure.Figure</cite></dt>
+<dd>The figure (new or existing) in which the decomposition is plotted.</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">HilbertHuangSpectrum</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">hht.py for Hilbert Huang Transform</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to PyHHT’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Liang Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/hht.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
